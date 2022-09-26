@@ -30,10 +30,13 @@ redisClient.connect().catch(console.error);
 
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    store: new RedisStore({ client: redisClient, ttl: 10 }),
     secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+    },
   }),
 );
 
@@ -42,9 +45,8 @@ app.use('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
   const session = req.session;
-  const sessionId = req.headers.authorization;
 
-  if (!session[sessionId]) {
+  if (!session.sessionId) {
     return res.status(401).json('Unauthorized');
   }
 

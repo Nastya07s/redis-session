@@ -51,10 +51,11 @@ router.post('/login', async (req, res) => {
     .createHash('sha256')
     .update(email + password + new Date())
     .digest('hex');
-  // console.log('hash: ', hash)
 
   const session = req.session;
-  session[hash] = user._id;
+  session.sessionId = hash;
+
+  res.setHeader('Set-Cookie', `sessionId=${hash}`);
 
   return res.status(200).json('Login success');
 });
