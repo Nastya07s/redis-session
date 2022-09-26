@@ -1,5 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
 const User = require('./../models/UserSchema');
 
 const router = express.Router();
@@ -11,7 +13,7 @@ router.post('/register', async (req, res) => {
     return res.status(400).json('Email and password are required');
   }
 
-  const user = await User.find({ email });
+  const user = await User.findOne({ email });
   if (user) {
     return res.status(400).json('User already exists');
   }
@@ -23,7 +25,7 @@ router.post('/register', async (req, res) => {
     return res.status(500).json('Error while save. Please try again');
   }
 
-  return res.status(200);
+  return res.status(200).json('Register success');
 });
 
 router.post('/login', async (req, res) => {
@@ -34,6 +36,7 @@ router.post('/login', async (req, res) => {
   }
 
   const user = await User.findOne({ email });
+
   if (!user) {
     return res.status(404).json('User not found');
   }
@@ -44,7 +47,22 @@ router.post('/login', async (req, res) => {
     return res.status(400).json('Password incorrect');
   }
 
-  return res.status(200);
+  const hash = crypto
+    .createHash('sha256')
+    .update(email + password + new Date())
+    .digest('hex');
+  // console.log('hash: ', hash)
+
+  const session = req.session;
+  session[hash] = user._id;
+
+  return res.status(200).json('Login success');
+});
+
+router.get('/logout', async (req, res) => {
+  req.session.destroy(function (err) {
+    return res.status(200).json('Destroyed session');
+  });
 });
 
 module.exports = router;
