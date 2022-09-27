@@ -13,6 +13,16 @@ router.post('/register', async (req, res) => {
     return res.status(400).json('Email and password are required');
   }
 
+  const regExpForEmail = new RegExp(/\w+@\w+\.\w+/, 'ig');
+  if (!regExpForEmail.test(email)) {
+    return res.status(400).json('Email incorrect');
+  }
+
+  const regExpForPassword = new RegExp(/.{6}/, 'ig');
+  if (!regExpForPassword.test(password)) {
+    return res.status(400).json('Password must be at least 6 symbols');
+  }
+
   const user = await User.findOne({ email });
   if (user) {
     return res.status(400).json('User already exists');
